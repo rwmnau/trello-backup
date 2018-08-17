@@ -96,7 +96,7 @@ echo count($boards) . " boards to backup... \n";
 
 // 5) Backup now!
 foreach ($boards as $id => $board) {
-    $url_individual_board_json = "https://api.trello.com/1/boards/$id?actions=all&actions_limit=1000&card_attachment_fields=all&cards=all&lists=all&members=all&member_fields=all&card_attachment_fields=all&checklists=all&fields=all&key=$key&token=$application_token";
+    $url_individual_board_json = "https://api.trello.com/1/boards/$id?actions=all&actions_limit=1000&card_attachment_fields=all&cards=all&customFields=true&card_customFieldItems=true&lists=all&members=all&member_fields=all&card_attachment_fields=all&checklists=all&labels=all&fields=all&key=$key&token=$application_token";
     $dirname = getPathToStoreBackups($path, $board, $filename_append_datetime);
     $filename = $dirname . '.json';
     echo "recording " . (($board->closed) ? 'the closed ' : '') . "board '" . $board->name . "' " . (empty($board->orgName) ? "" : "(within organization '" . $board->orgName . "')") . " in filename $filename ...\n";
@@ -105,7 +105,16 @@ foreach ($boards as $id => $board) {
     if (empty($decoded)) {
         die("The board '$board->name' or organization '$board->orgName' could not be downloaded, response was : $response ");
     }
-    file_put_contents($filename, $response);
+	// Now try to get custom fields
+	//$url_individual_board_custom_field_json = "https://api.trello.com/1/boards/$id/customFields?key=$key&token=$application_token";
+    //$customFieldResponse = file_get_contents($url_individual_board_custom_field_json, false, $ctx);
+    //$decodedCustomFields = json_decode($customFieldResponse);
+    //if (empty($decodedCustomFields)) {
+    //    $customFieldResponse = "";
+    //}
+
+
+file_put_contents($filename, substr($response, 0, strlen($response)-1) . (strlen($customFieldResponse) > 0 ? ", \"customFields\": " . $customFieldResponse : "") . "}");
 
     // 5a) Backup the attachments
     if($backup_attachments) {
